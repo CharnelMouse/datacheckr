@@ -7,8 +7,8 @@ describe("check_primary_keys_unique()", {
   })
   it("expects colnames to be in dt", {
     expect_exerr(
-      check_primary_keys_unique(data.table(a = integer()), "b"),
-      "colnames must exist in dt"
+      check_primary_keys_unique(data.table(a = integer()), c("a", "b")),
+      "columns not in dt: b"
     )
   })
   it("returns NULL (pass) if dt has no rows", {

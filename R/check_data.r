@@ -4,22 +4,15 @@ check_primary_keys_unique <- function(
 ) {
   if (length(colnames) == 0)
     stop("colnames cannot be length zero")
-  if (any(!is.element(colnames, colnames(dt))))
-    stop("colnames must exist in dt")
-  primary <- dt[, ..colnames]
-  dup <- duplicated(primary)
-  if (any(dup)) {
-    dups <- unique(primary[dup])
-    error_list <- paste(
-      apply(
-        dups,
-        1L,
-        function(y) paste(colnames, y, sep = ": ", collapse = "\n")
-      ),
-      collapse = "\n\n"
-    )
-    stop(paste0("there are duplicated primary keys:\n", error_list))
-  }
+  stop_if_nonempty(
+    setdiff(colnames, colnames(dt)),
+    "columns not in dt"
+  )
+  dup <- duplicated(dt, by = colnames)
+  stop_if_nonempty(
+    unique(dt[dup, ..colnames]),
+    "there are duplicated primary keys"
+  )
 }
 
 check_foreign_keys <- function(
@@ -33,12 +26,14 @@ check_foreign_keys <- function(
     stop("require at least one key")
   if (length(keys) != length(ref_keys))
     stop("keys and ref_keys must be same length")
-  dt_miss <- setdiff(keys, colnames(dt))
-  if (length(dt_miss) > 0)
-    stop(paste("there are keys not in dt:", paste(dt_miss, collapse = ", ")))
-  ref_miss <- setdiff(ref_keys, colnames(ref))
-  if (length(ref_miss) > 0)
-    stop(paste("there are keys not in ref:", paste(ref_miss, collapse = ", ")))
+  stop_if_nonempty(
+    setdiff(keys, colnames(dt)),
+    "there are keys not in dt"
+  )
+  stop_if_nonempty(
+    setdiff(ref_keys, colnames(ref)),
+    "there are keys not in ref"
+  )
   value_miss <- stats::setNames(
     Map(
       function(key, ref_key) {
@@ -55,17 +50,10 @@ check_foreign_keys <- function(
     ),
     keys
   )
-  value_miss <- value_miss[vapply(value_miss, length, integer(1)) > 0L]
-  if (length(unlist(value_miss)) > 0)
-    stop(paste0(
-      "there are values not in ref:\n",
-      paste(
-        names(value_miss),
-        vapply(value_miss, paste, character(1), collapse = ", "),
-        sep = ": ",
-        collapse = "\n"
-      )
-    ))
+  stop_if_nonempty(
+    remove_empty(value_miss),
+    "there are values not in ref"
+  )
 }
 
 check_no_required_values_missing <- function(
@@ -73,15 +61,61 @@ check_no_required_values_missing <- function(
   optional = character()
 ) {
   missing <- lapply(dt[, -..optional], function(x) which(is.na(x)))
-  stripped_missing <- missing[vapply(missing, length, integer(1)) > 0L]
-  if (length((stripped_missing)) > 0)
-    stop(paste0(
-      "there are missing required values in the following rows:\n",
-      paste(
-        names(stripped_missing),
-        vapply(stripped_missing, paste, character(1), collapse = ", "),
-        sep = ": ",
-        collapse = "\n"
-      )
-    ))
+  stop_if_nonempty(
+    remove_empty(missing),
+    "there are missing required values in the following rows"
+  )
+}
+
+remove_empty <- function(
+  lst
+) {
+  lst[vapply(lst, length, integer(1)) > 0]
+}
+
+toString.list <- function(lst, ...) {
+  paste(
+    names(lst),
+    vapply(lst, toString, character(1)),
+    sep = ": ",
+    collapse = "\n"
+  )
+}
+
+toString.data.frame <- function(dt, ...) {
+  paste(
+    apply(dt, 1L, toString.list),
+    collapse = "\n\n"
+  )
+}
+
+stop_if_nonempty <- function(
+  x,
+  err
+) {
+  UseMethod("stop_if_nonempty")
+}
+
+stop_if_nonempty.default <- function(
+  x,
+  err
+) {
+  if (length(x) > 0)
+    stop(paste(err, toString(x), sep = ": "))
+}
+
+stop_if_nonempty.list <- function(
+  x,
+  err
+) {
+  if (length(x) > 0)
+    stop(paste(err, toString.list(x), sep = ":\n"))
+}
+
+stop_if_nonempty.data.frame <- function(
+  x,
+  err
+) {
+  if (nrow(x) > 0)
+    stop(paste(err, toString.data.frame(x), sep = ":\n"))
 }
