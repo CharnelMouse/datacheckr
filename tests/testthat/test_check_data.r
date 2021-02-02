@@ -114,6 +114,17 @@ describe("check_foreign_keys()", {
       "foreign key values not found in reference columns:\na: NA"
     )
   })
+  it("expects optional to be length one or same length as keys", {
+    expect_exerr(
+      check_foreign_keys(
+        data.table(a = NA_character_, b = NA_character_),
+        data.table(a = "a", b = "b"),
+        c("a", "b"),
+        optional = c(TRUE, FALSE, TRUE)
+      ),
+      "optional must be length one or same length as keys"
+    )
+  })
   it("allows NA in addition to ref values if optional = TRUE", {
     expect_null(
       check_foreign_keys(
@@ -122,6 +133,17 @@ describe("check_foreign_keys()", {
         "a",
         optional = TRUE
       )
+    )
+  })
+  it("allows an optional flag for each key pair", {
+    expect_exerr(
+      check_foreign_keys(
+        data.table(a = NA_character_, b = NA_character_),
+        data.table(a = "a", b = "b"),
+        c("a", "b"),
+        optional = c(TRUE, FALSE)
+      ),
+      "foreign key values not found in reference columns:\nb: NA"
     )
   })
 })

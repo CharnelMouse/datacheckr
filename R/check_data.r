@@ -33,9 +33,11 @@ check_primary_keys_unique <- function(
 #' @param ref_keys a character vector, giving names of reference columns in
 #'   \code{ref}. These should be in the same order as the foreign key columns
 #'   they are references for. Defaults to \code{keys}.
-#' @param optional a logical, indicating whether foreign key values can be
-#'   missing. Note that this is different from the reference columns being
-#'   nullable. Defaults to FALSE.
+#' @param optional a logical, or logical vector, indicating whether foreign key
+#'   values can be missing. Note that this is different from the reference
+#'   columns being nullable. The length must be one, or equal to the length of
+#'   \code{keys}. If length one, the single logical is applied to all keys.
+#'   Defaults to FALSE.
 #'
 #' @return NULL, if no reference errors found.
 #' @export
@@ -50,6 +52,10 @@ check_foreign_keys <- function(
     stop("require at least one key")
   if (length(keys) != length(ref_keys))
     stop("keys and ref_keys must be same length")
+  if (length(optional) == 1)
+    optional <- rep(optional, length(keys))
+  if (length(optional) != length(keys))
+    stop("optional must be length one or same length as keys")
   stop_if_nonempty(
     setdiff(keys, colnames(dt)),
     "foreign key columns not found in dt"
@@ -60,7 +66,7 @@ check_foreign_keys <- function(
   )
   value_miss <- stats::setNames(
     Map(
-      function(key, ref_key) {
+      function(key, ref_key, optional) {
         setdiff(
           dt[[key]],
           c(
@@ -70,7 +76,8 @@ check_foreign_keys <- function(
         )
       },
       keys,
-      ref_keys
+      ref_keys,
+      optional
     ),
     keys
   )

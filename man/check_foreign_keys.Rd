@@ -19,9 +19,11 @@ against.}
 \code{ref}. These should be in the same order as the foreign key columns
 they are references for. Defaults to \code{keys}.}
 
-\item{optional}{a logical, indicating whether foreign key values can be
-missing. Note that this is different from the reference columns being
-nullable. Defaults to FALSE.}
+\item{optional}{a logical, or logical vector, indicating whether foreign key
+values can be missing. Note that this is different from the reference
+columns being nullable. The length must be one, or equal to the length of
+\code{keys}. If length one, the single logical is applied to all keys.
+Defaults to FALSE.}
 }
 \value{
 NULL, if no reference errors found.
