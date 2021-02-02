@@ -142,19 +142,13 @@ check_column_types <- function(
     dt,
     inherit
   )
-  type_correct <- mapply(
-    function(actual, expected) {
-      expected %in% actual
-    },
-    actual_types,
-    types
-  )
+  type_correct <- mapply(is.element, types, actual_types)
   if (any(!type_correct)) {
     errors <- paste0(
       names(types[!type_correct]),
       ": expected ", types[!type_correct],
       ", observed ",
-      vapply(actual_types, toString, character(1))[!type_correct],
+      vapply(actual_types[!type_correct], toString, character(1)),
       collapse = "\n"
     )
     stop(paste("unexpected column types", errors, sep = ":\n"))
