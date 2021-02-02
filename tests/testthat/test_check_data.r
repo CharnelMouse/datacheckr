@@ -163,3 +163,67 @@ describe("check_no_required_values_missing", {
     )
   })
 })
+
+describe("check_column_types()", {
+  it("expects to be given a type for each column, with no extras", {
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer(), b = character()),
+        c(a = "integer")
+      ),
+      "missing column types: b"
+    )
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer(), b = character()),
+        c(a = "integer", b = "character", c = "numeric")
+      ),
+      "types given for absent columns: c"
+    )
+  })
+  it("returns error if any primary column types are not as expected", {
+    mult_inherit <- numeric()
+    class(mult_inherit) <- c("test", "character")
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer(), b = mult_inherit),
+        c(a = "integer", b = "character")
+      ),
+      "unexpected column types:\nb: expected character, observed test"
+    )
+  })
+  it("can allow check on inheritance instead of direct type", {
+    mult_inherit <- numeric()
+    class(mult_inherit) <- c("test", "character")
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer(), b = mult_inherit, c = mult_inherit),
+        c(a = "integer", b = "character", c = "numeric"),
+        inherit = TRUE
+      ),
+      "unexpected column types:\nc: expected numeric, observed test, character"
+    )
+  })
+  it("can allow inheritance separately for individual columns", {
+    mult_inherit <- numeric()
+    class(mult_inherit) <- c("test", "character")
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer(), b = mult_inherit, c = mult_inherit),
+        c(a = "integer", b = "character", c = "numeric"),
+        inherit = c(FALSE, FALSE, TRUE)
+      ),
+      "unexpected column types:\nb: expected character, observed test\nc: expected numeric, observed test, character"
+    )
+  })
+  it("expects inherits to be length one or same length as types", {
+    expect_exerr(
+      check_column_types(
+        data.table(a = integer()),
+        c(a = "integer"),
+        inherit = c(FALSE, TRUE)
+      ),
+      "inherit must be length one or same length as types"
+    )
+  })
+})

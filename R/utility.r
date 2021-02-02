@@ -50,3 +50,10 @@ stop_if_nonempty.data.frame <- function(
   if (nrow(x) > 0)
     stop(paste(err, toString.data.frame(x), sep = ":\n"))
 }
+
+distinct <- function(
+  x,
+  y
+) {
+  list(setdiff(x, y), setdiff(y, x))
+}

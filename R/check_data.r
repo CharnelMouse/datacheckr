@@ -105,3 +105,52 @@ check_no_required_values_missing <- function(
     "there are missing required values in the following rows"
   )
 }
+
+#' Check columns have expected types
+#'
+#' @param dt a data.table, for which all the column types are checked.
+#' @param types a named character vector, with values equal to the expected types, and names equal to the column names.
+#' @param inherit a logical, or logical vector, indicating whether the columns are checked for inheritance from the expected type. If not, the column's first class is check for being equal to the expected type.
+#'
+#' @return NULL, if all column types are as expected.
+#' @export
+check_column_types <- function(
+  dt,
+  types,
+  inherit = FALSE
+) {
+  diffs <- distinct(colnames(dt), names(types))
+  stop_if_nonempty(diffs[[1]], "missing column types")
+  stop_if_nonempty(diffs[[2]], "types given for absent columns")
+  if (length(inherit) == 1)
+    inherit <- rep(inherit, length(types))
+  if (length(inherit) != length(types))
+    stop("inherit must be length one or same length as types")
+  actual_types <-  Map(
+    function(x, inherit) {
+      if (!inherit)
+        class(x)[1]
+      else
+        class(x)
+    },
+    dt,
+    inherit
+  )
+  type_correct <- mapply(
+    function(actual, expected) {
+      expected %in% actual
+    },
+    actual_types,
+    types
+  )
+  if (any(!type_correct)) {
+    errors <- paste0(
+      names(types[!type_correct]),
+      ": expected ", types[!type_correct],
+      ", observed ",
+      vapply(actual_types, toString, character(1))[!type_correct],
+      collapse = "\n"
+    )
+    stop(paste("unexpected column types", errors, sep = ":\n"))
+  }
+}
