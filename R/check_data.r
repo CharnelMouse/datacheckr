@@ -1,3 +1,11 @@
+#' Check primary keys are unique
+#'
+#' @param dt a data.table, for which to check the primary key values.
+#' @param colnames a character vector, giving names of columns in the primary
+#'   key.
+#'
+#' @return NULL, if no duplicates found.
+#' @export
 check_primary_keys_unique <- function(
   dt,
   colnames
@@ -15,6 +23,22 @@ check_primary_keys_unique <- function(
   )
 }
 
+#' Check foreign key values are in reference columns
+#'
+#' @param dt a data.table, for which to check foreign key values.
+#' @param ref a data.table, which includes the reference columns to check
+#'   against.
+#' @param keys a character vector, giving names of foreign key columns in
+#'   \code{dt}.
+#' @param ref_keys a character vector, giving names of reference columns in
+#'   \code{ref}. These should be in the same order as the foreign key columns
+#'   they are references for. Defaults to \code{keys}.
+#' @param optional a logical, indicating whether foreign key values can be
+#'   missing. Note that this is different from the reference columns being
+#'   nullable. Defaults to FALSE.
+#'
+#' @return NULL, if no reference errors found.
+#' @export
 check_foreign_keys <- function(
   dt,
   ref,
@@ -28,11 +52,11 @@ check_foreign_keys <- function(
     stop("keys and ref_keys must be same length")
   stop_if_nonempty(
     setdiff(keys, colnames(dt)),
-    "there are keys not in dt"
+    "foreign key columns not found in dt"
   )
   stop_if_nonempty(
     setdiff(ref_keys, colnames(ref)),
-    "there are keys not in ref"
+    "reference key columns not found in ref"
   )
   value_miss <- stats::setNames(
     Map(
@@ -52,10 +76,18 @@ check_foreign_keys <- function(
   )
   stop_if_nonempty(
     remove_empty(value_miss),
-    "there are values not in ref"
+    "foreign key values not found in reference columns"
   )
 }
 
+#' Check for missing entries in non-nullable columns
+#'
+#' @param dt a data.table, for which to check for missing entries.
+#' @param optional a character vector, containing names of nullable columns in
+#'   \code{dt}. These columns are not checked.
+#'
+#' @return NULL, if no missing non-nullable entries are found.
+#' @export
 check_no_required_values_missing <- function(
   dt,
   optional = character()

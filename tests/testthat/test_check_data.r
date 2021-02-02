@@ -64,7 +64,7 @@ describe("check_foreign_keys()", {
         data.table(b = character()),
         "b"
       ),
-      "there are keys not in dt: b"
+      "foreign key columns not found in dt: b"
     )
     expect_exerr(
       check_foreign_keys(
@@ -72,7 +72,7 @@ describe("check_foreign_keys()", {
         data.table(b = character()),
         "a"
       ),
-      "there are keys not in ref: a"
+      "reference key columns not found in ref: a"
     )
   })
   it("returns error with values in dt that don't exist in ref", {
@@ -82,7 +82,7 @@ describe("check_foreign_keys()", {
         data.table(a = 1:2),
         "a"
       ),
-      "there are values not in ref:\na: 3"
+      "foreign key values not found in reference columns:\na: 3"
     )
     expect_exerr(
       check_foreign_keys(
@@ -92,7 +92,7 @@ describe("check_foreign_keys()", {
                    b = 1:3),
         c("a", "b")
       ),
-      "there are values not in ref:\na: 3, 4"
+      "foreign key values not found in reference columns:\na: 3, 4"
     )
   })
   it("returns NULL if foreign keys all pull values out of ref", {
@@ -111,7 +111,7 @@ describe("check_foreign_keys()", {
         data.table(a = "a"),
         "a"
       ),
-      "there are values not in ref:\na: NA"
+      "foreign key values not found in reference columns:\na: NA"
     )
   })
   it("allows NA in addition to ref values if optional = TRUE", {
