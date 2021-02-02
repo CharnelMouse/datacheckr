@@ -109,8 +109,12 @@ check_no_required_values_missing <- function(
 #' Check columns have expected types
 #'
 #' @param dt a data.table, for which all the column types are checked.
-#' @param types a named character vector, with values equal to the expected types, and names equal to the column names.
-#' @param inherit a logical, or logical vector, indicating whether the columns are checked for inheritance from the expected type. If not, the column's first class is check for being equal to the expected type.
+#' @param types a named character vector, with values equal to the expected
+#'   types, and names equal to the column names.
+#' @param inherit a logical, or logical vector, indicating whether the columns
+#'   are checked for inheritance from the expected type. If not, the column's
+#'   first class is check for being equal to the expected type. Should have the
+#'   same order as \code{types}.
 #'
 #' @return NULL, if all column types are as expected.
 #' @export
@@ -126,6 +130,8 @@ check_column_types <- function(
     inherit <- rep(inherit, length(types))
   if (length(inherit) != length(types))
     stop("inherit must be length one or same length as types")
+  inherit <- inherit[match(names(types), colnames(dt))]
+  types <- types[match(names(types), colnames(dt))]
   actual_types <-  Map(
     function(x, inherit) {
       if (!inherit)

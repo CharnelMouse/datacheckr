@@ -192,6 +192,14 @@ describe("check_column_types()", {
       "unexpected column types:\nb: expected character, observed test"
     )
   })
+  it("can take types out of order", {
+    expect_null(
+      check_column_types(
+        data.table(a = integer(), b = character()),
+        c(b = "character", a = "integer")
+      )
+    )
+  })
   it("can allow check on inheritance instead of direct type", {
     mult_inherit <- numeric()
     class(mult_inherit) <- c("test", "character")
@@ -224,6 +232,17 @@ describe("check_column_types()", {
         inherit = c(FALSE, TRUE)
       ),
       "inherit must be length one or same length as types"
+    )
+  })
+  it("uses inherit in same order as types if given out of order", {
+    mult_inherit <- numeric()
+    class(mult_inherit) <- c("test", "character")
+    expect_null(
+      check_column_types(
+        data.table(a = integer(), b = mult_inherit),
+        types = c(b = "character", a = "integer"),
+        inherit = c(TRUE, FALSE)
+      )
     )
   })
 })

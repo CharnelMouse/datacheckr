@@ -9,9 +9,13 @@ check_column_types(dt, types, inherit = FALSE)
 \arguments{
 \item{dt}{a data.table, for which all the column types are checked.}
 
-\item{types}{a named character vector, with values equal to the expected types, and names equal to the column names.}
+\item{types}{a named character vector, with values equal to the expected
+types, and names equal to the column names.}
 
-\item{inherit}{a logical, or logical vector, indicating whether the columns are checked for inheritance from the expected type. If not, the column's first class is check for being equal to the expected type.}
+\item{inherit}{a logical, or logical vector, indicating whether the columns
+are checked for inheritance from the expected type. If not, the column's
+first class is check for being equal to the expected type. Should have the
+same order as \code{types}.}
 }
 \value{
 NULL, if all column types are as expected.
