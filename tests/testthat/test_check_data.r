@@ -127,13 +127,14 @@ describe("check_foreign_keys()", {
 })
 
 describe("check_no_required_values_missing", {
-  it("expects NA values to only occur in given columns, allowed where normalization would hinder use", {
-    dt <- data.table(a = NA)
-    expect_null(check_no_required_values_missing(dt, "a"))
+  it("returns error if NA values found", {
     expect_exerr(
-      check_no_required_values_missing(dt),
+      check_no_required_values_missing(data.table(a = NA)),
       "there are missing required values in the following rows:\na: 1"
     )
+  })
+  it("ignores optional columns, where normalization would hinder use", {
+    expect_null(check_no_required_values_missing(data.table(a = NA), "a"))
     expect_exerr(
       check_no_required_values_missing(data.table(a = 1:2, b = c(1, NA), c = NA)),
       "there are missing required values in the following rows:\nb: 2\nc: 1, 2"
