@@ -246,3 +246,85 @@ describe("check_column_types()", {
     )
   })
 })
+
+describe("check_table_constraint()", {
+  it("checks whether calling an evaluation inside the table returns TRUE", {
+    expect_null(
+      check_table_constraint(
+        data.table(a = 1:6, b = 1:3),
+        expression(b <= a)
+      )
+    )
+    expect_exerr(
+      check_table_constraint(
+        data.table(a = 1:3, b = c(1L, 3L, NA_integer_)),
+        expression(b <= a)
+      ),
+      "table has entries that violate constraint b <= a:\na: 2\nb: 3\n\na: 3\nb: NA"
+    )
+  })
+  it("expects expression to return logical vector of same length as table", {
+    expect_exerr(
+      check_table_constraint(
+        data.table(a = 1:3, b = 1:3),
+        expression(b[1] <= a[1])
+      ),
+      "expression result is not logical with length equal to table entry count"
+    )
+    expect_exerr(
+      check_table_constraint(
+        data.table(a = 1:3, b = 1:3),
+        expression(as.integer(b <= a))
+      ),
+      "expression result is not logical with length equal to table entry count"
+    )
+  })
+})
+
+describe("check_column_relation()", {
+  it("checks first column values are function of second column", {
+    expect_null(
+      check_column_relation(
+        data.table(a = 3L),
+        data.table(b = 1:3),
+        "a",
+        "b",
+        max
+      )
+    )
+    expect_exerr(
+      check_column_relation(
+        data.table(a = 3),
+        data.table(b = 1:3),
+        "a",
+        "b",
+        max
+      ),
+      "first column not function of second column"
+    )
+  })
+  it("can check relation over groups, using by", {
+    expect_null(
+      check_column_relation(
+        data.table(grp = c("a", "b"), a = 3:4),
+        data.table(grp = rep(c("a", "b"), each = 3), b = c(1:3, 2:4)),
+        "a",
+        "b",
+        max,
+        by = "grp"
+      )
+    )
+  })
+  it("can group over unordered columns", {
+    expect_null(
+      check_column_relation(
+        data.table(grp = c("a", "b"), a = 3:4),
+        data.table(grp = rep(c("b", "a"), each = 3), b = c(2:4, 1:3)),
+        "a",
+        "b",
+        max,
+        by = "grp"
+      )
+    )
+  })
+})

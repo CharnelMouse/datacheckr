@@ -154,3 +154,55 @@ check_column_types <- function(
     stop(paste("unexpected column types", errors, sep = ":\n"))
   }
 }
+
+#' Check table entries satisfy given constraint
+#'
+#' @param dt a data.table, on which to check the constraint.
+#' @param expr an expression, which will be evaluated to check the constraint.
+#'   Columns in the table can be referred to by name.
+#'
+#' @return NULL, if the constraint is always satisfied.
+#' @export
+check_table_constraint <- function(
+  dt,
+  expr
+) {
+  results <- dt[, eval(expr)]
+  if (!is.logical(results) || length(results) != nrow(dt))
+    stop("expression result is not logical with length equal to table entry count")
+  invalid <- dt[is.na(results) | results == FALSE]
+  stop_if_nonempty(
+    invalid,
+    paste("table has entries that violate constraint", toString(expr))
+  )
+}
+
+check_column_relation <- function(
+  dt1,
+  dt2,
+  column1,
+  column2,
+  fun,
+  by = NULL
+) {
+  if (is.null(by) && !identical(dt1[[column1]], fun(dt2[[column2]])))
+    stop("first column not function of second column")
+  if (!is.null(by)) {
+    test1 <- setorderv(
+      dt1[
+        , c(..by, ..column1)
+      ],
+      by
+    )
+    test2 <- setorderv(
+      dt2[
+        , lapply(.SD, fun), .SDcols = column2, by = by
+      ][
+        , setnames(.SD, c(by, column1))
+      ],
+      by
+    )
+    if (!identical(test1, test2))
+      stop("first column not function of second column")
+  }
+}
