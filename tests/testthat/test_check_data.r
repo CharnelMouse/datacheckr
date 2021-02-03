@@ -279,6 +279,16 @@ describe("check_table_constraint()", {
       "expression result is not logical with length equal to table entry count"
     )
   })
+  it("fails if given external variables", {
+    c <- rep(1:3, 2)
+    expect_exerr(
+      check_table_constraint(
+        data.table(a = 1:6, b = 1:3),
+        expression(c <= a)
+      ),
+      "constraint evaluation threw an error, check that you're not using variables defined outside of the table"
+    )
+  })
 })
 
 describe("check_column_relation()", {

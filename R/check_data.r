@@ -167,7 +167,10 @@ check_table_constraint <- function(
   dt,
   expr
 ) {
-  results <- dt[, eval(expr)]
+  results <- tryCatch(
+    dt[, eval(expr)],
+    error = function(e) stop("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
+  )
   if (!is.logical(results) || length(results) != nrow(dt))
     stop("expression result is not logical with length equal to table entry count")
   invalid <- dt[is.na(results) | results == FALSE]
