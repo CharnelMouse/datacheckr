@@ -20,6 +20,12 @@ toString.data.frame <- function(dt, ...) {
   )
 }
 
+stop2 <- function(
+  ...
+) {
+  stop(..., call. = FALSE)
+}
+
 stop_if_nonempty <- function(
   x,
   err
@@ -32,7 +38,7 @@ stop_if_nonempty.default <- function(
   err
 ) {
   if (length(x) > 0)
-    stop(paste(err, toString(x), sep = ": "))
+    stop2(paste(err, toString(x), sep = ": "))
 }
 
 stop_if_nonempty.list <- function(
@@ -40,7 +46,7 @@ stop_if_nonempty.list <- function(
   err
 ) {
   if (length(x) > 0)
-    stop(paste(err, toString.list(x), sep = ":\n"))
+    stop2(paste(err, toString.list(x), sep = ":\n"))
 }
 
 stop_if_nonempty.data.frame <- function(
@@ -48,7 +54,7 @@ stop_if_nonempty.data.frame <- function(
   err
 ) {
   if (nrow(x) > 0)
-    stop(paste(err, toString.data.frame(x), sep = ":\n"))
+    stop2(paste(err, toString.data.frame(x), sep = ":\n"))
 }
 
 distinct <- function(

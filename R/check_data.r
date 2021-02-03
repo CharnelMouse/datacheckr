@@ -11,7 +11,7 @@ check_primary_keys_unique <- function(
   colnames
 ) {
   if (length(colnames) == 0)
-    stop("colnames cannot be length zero")
+    stop2("colnames cannot be length zero")
   stop_if_nonempty(
     setdiff(colnames, colnames(dt)),
     "columns not in dt"
@@ -49,13 +49,13 @@ check_foreign_keys <- function(
   optional = FALSE
 ) {
   if (length(keys) == 0)
-    stop("require at least one key")
+    stop2("require at least one key")
   if (length(keys) != length(ref_keys))
-    stop("keys and ref_keys must be same length")
+    stop2("keys and ref_keys must be same length")
   if (length(optional) == 1)
     optional <- rep(optional, length(keys))
   if (length(optional) != length(keys))
-    stop("optional must be length one or same length as keys")
+    stop2("optional must be length one or same length as keys")
   stop_if_nonempty(
     setdiff(keys, colnames(dt)),
     "foreign key columns not found in dt"
@@ -129,7 +129,7 @@ check_column_types <- function(
   if (length(inherit) == 1)
     inherit <- rep(inherit, length(types))
   if (length(inherit) != length(types))
-    stop("inherit must be length one or same length as types")
+    stop2("inherit must be length one or same length as types")
   inherit <- inherit[match(names(types), colnames(dt))]
   types <- types[match(names(types), colnames(dt))]
   actual_types <-  Map(
@@ -151,7 +151,7 @@ check_column_types <- function(
       vapply(actual_types[!type_correct], toString, character(1)),
       collapse = "\n"
     )
-    stop(paste("unexpected column types", errors, sep = ":\n"))
+    stop2(paste("unexpected column types", errors, sep = ":\n"))
   }
 }
 
@@ -169,10 +169,10 @@ check_table_constraint <- function(
 ) {
   results <- tryCatch(
     dt[, eval(expr)],
-    error = function(e) stop("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
+    error = function(e) stop2("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
   )
   if (!is.logical(results) || length(results) != nrow(dt))
-    stop("expression result is not logical with length equal to table entry count")
+    stop2("expression result is not logical with length equal to table entry count")
   invalid <- dt[is.na(results) | results == FALSE]
   stop_if_nonempty(
     invalid,
@@ -189,7 +189,7 @@ check_column_relation <- function(
   by = NULL
 ) {
   if (is.null(by) && !identical(dt1[[column1]], fun(dt2[[column2]])))
-    stop("first column not function of second column")
+    stop2("first column not function of second column")
   if (!is.null(by)) {
     test1 <- setorderv(
       dt1[
@@ -206,6 +206,6 @@ check_column_relation <- function(
       by
     )
     if (!identical(test1, test2))
-      stop("first column not function of second column")
+      stop2("first column not function of second column")
   }
 }
