@@ -289,6 +289,15 @@ describe("check_table_constraint()", {
       "constraint evaluation threw an error, check that you're not using variables defined outside of the table"
     )
   })
+  it("can check expression over groups", {
+    expect_null(
+      check_table_constraint(
+        data.table(a = c(1:3, 3:1), b = 1:3),
+        expression(a == c(b, 4L - b)),
+        by = "b"
+      )
+    )
+  })
 })
 
 describe("check_column_relation()", {

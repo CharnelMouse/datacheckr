@@ -160,24 +160,44 @@ check_column_types <- function(
 #' @param dt a data.table, on which to check the constraint.
 #' @param expr an expression, which will be evaluated to check the constraint.
 #'   Columns in the table can be referred to by name.
+#' @param by an option character vector, giving columns over which to group. The
+#'   constraint is checked for each group.
 #'
 #' @return NULL, if the constraint is always satisfied.
 #' @export
 check_table_constraint <- function(
   dt,
-  expr
+  expr,
+  by = NULL
 ) {
-  results <- tryCatch(
-    dt[, eval(expr)],
-    error = function(e) stop2("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
-  )
-  if (!is.logical(results) || length(results) != nrow(dt))
-    stop2("expression result is not logical with length equal to table entry count")
-  invalid <- dt[is.na(results) | results == FALSE]
-  stop_if_nonempty(
-    invalid,
-    paste("table has entries that violate constraint", toString(expr))
-  )
+  if (is.null(by)) {
+    results <- tryCatch(
+      dt[, eval(expr)],
+      error = function(e) stop2("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
+    )
+    if (!is.logical(results) || length(results) != nrow(dt))
+      stop2("expression result is not logical with length equal to table entry count")
+    invalid <- dt[is.na(results) | results == FALSE]
+    stop_if_nonempty(
+      invalid,
+      paste("table has entries that violate constraint", toString(expr))
+    )
+  }else{
+    results <- tryCatch(
+      dt[, .(.eval = eval(expr)), by = by],
+      error = function(e) stop2("constraint evaluation threw an error, check that you're not using variables defined outside of the table")
+    )
+    if (
+      !is.logical(results[[".eval"]]) ||
+      any(results[, .(.count = .N), by = by] != dt[, .(.count = .N), by = by])
+    )
+      stop2("expression result is not logical with length equal to group entry count")
+    invalid <- dt[results[is.na(.eval) | .eval == FALSE, -c(".eval")], on = by]
+    stop_if_nonempty(
+      invalid,
+      paste("table has entries that violate constraint", toString(expr))
+    )
+  }
 }
 
 check_column_relation <- function(

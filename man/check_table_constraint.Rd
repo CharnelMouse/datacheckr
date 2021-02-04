@@ -4,13 +4,16 @@
 \alias{check_table_constraint}
 \title{Check table entries satisfy given constraint}
 \usage{
-check_table_constraint(dt, expr)
+check_table_constraint(dt, expr, by = NULL)
 }
 \arguments{
 \item{dt}{a data.table, on which to check the constraint.}
 
 \item{expr}{an expression, which will be evaluated to check the constraint.
 Columns in the table can be referred to by name.}
+
+\item{by}{an option character vector, giving columns over which to group. The
+constraint is checked for each group.}
 }
 \value{
 NULL, if the constraint is always satisfied.
