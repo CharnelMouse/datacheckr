@@ -300,6 +300,90 @@ describe("check_table_constraint()", {
   })
 })
 
+describe("check_range_contiguous()", {
+  it("checks ranges in two columns are contiguous, minus expected gap", {
+    expect_null(
+      check_range_contiguous(
+        data.table(
+          start = c(0, 1, 2, 3),
+          end = c(1, 2, 3, 4)
+        ),
+        "start",
+        "end",
+        spacing = 0
+      )
+    )
+    expect_exerr(
+      check_range_contiguous(
+        data.table(
+          start = c(0, 1, 2, 3),
+          end = c(1, 3, 3, 4)
+        ),
+        "start",
+        "end",
+        spacing = 0
+      ),
+      "ranges are not contiguous with spacing 0:\ntransition: 3 -> 2"
+    )
+  expect_null(
+    check_range_contiguous(
+      data.table(
+        start = c(0, 2.5, 4.5, 6.5),
+        end = c(1, 3, 5, 7)
+      ),
+      "start",
+      "end",
+      spacing = 1.5
+    )
+  )
+  })
+  it("expects columns to be sorted", {
+    expect_exerr(
+      check_range_contiguous(
+        data.table(
+          start = c(9, 1, 2, 3),
+          end = c(1, 2, 3, 4)
+        ),
+        "start",
+        "end",
+        spacing = 0
+      ),
+      "range columns are not sorted"
+    )
+  })
+  it("can take Date inheritors in addition to numbers", {
+    start_date <- as.Date("2021-02-05")
+    expect_exerr(
+      check_range_contiguous(
+        data.table(
+          start = as.Date(c(0, 1, 2, 3), origin = start_date),
+          end = as.Date(c(1, 3, 3, 4), origin = start_date)
+        ),
+        "start",
+        "end",
+        spacing = 0
+      ),
+      "ranges are not contiguous with spacing 0:\ntransition: 2021-02-08 -> 2021-02-07"
+    )
+  })
+  it("can check over groups", {
+    expect_exerr(
+      check_range_contiguous(
+        data.table(
+          grp = rep(c("a", "b"), each = 4),
+          start = c(0, 1, 2, 3),
+          end = c(1, 2, 3, 4, 1, 3, 3, 4)
+        ),
+        "start",
+        "end",
+        spacing = 0,
+        by = "grp"
+      ),
+      "ranges are not contiguous with spacing 0:\ngrp: b\ntransition: 3 -> 2"
+    )
+  })
+})
+
 describe("check_column_relation()", {
   it("checks first column values are function of second column", {
     expect_null(

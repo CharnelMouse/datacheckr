@@ -200,6 +200,57 @@ check_table_constraint <- function(
   }
 }
 
+#' Check numeric/date start/end interval columns make contiguous interval
+#'
+#' @param dt a data.table, from which to check the range columns.
+#' @param start_column a character, giving the name of the interval start point
+#'   column.
+#' @param end_column a character, giving the name of the interval end point
+#'   column.
+#' @param spacing a numeric or integer vector, giving the expected gap between
+#'   an interval end and the next interval's start.
+#' @param by a character vector, giving names of columns to group over. Defaults
+#'   to NULL, for no grouping.
+#'
+#' @return NULL, if the intervals are contiguous.
+#' @export
+check_range_contiguous <- function(
+  dt,
+  start_column,
+  end_column,
+  spacing,
+  by = NULL
+) {
+  if (
+    !is_number_or_date(dt[[start_column]]) ||
+    !is_number_or_date(dt[[end_column]])
+  )
+    stop2("range columns should contain numbers or dates")
+  if (
+    dt[
+      ,
+      .(check = any(vapply(.SD, is.unsorted, logical(1)))),
+      .SDcols = c(start_column, end_column),
+      by = by
+    ][, any(check)]
+  )
+    stop2("range columns are not sorted")
+  intervals_dt <- dt[
+    ,
+    Map(function(x, y) x[-y], .SD, c(.N, 1)),
+    .SDcols = c(end_column, start_column),
+    by = by
+  ][
+    ,
+    transition := paste(end, start, sep = " -> ")
+  ]
+  errors <- intervals_dt[end + spacing != start, -c("start", "end")]
+  stop_if_nonempty(
+    errors,
+    paste("ranges are not contiguous with spacing", spacing)
+  )
+}
+
 check_column_relation <- function(
   dt1,
   dt2,

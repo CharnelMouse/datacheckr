@@ -63,3 +63,9 @@ distinct <- function(
 ) {
   list(setdiff(x, y), setdiff(y, x))
 }
+
+is_number_or_date <- function(
+  x
+) {
+  is.numeric(x) || is.integer(x) || is(x, "Date")
+}
