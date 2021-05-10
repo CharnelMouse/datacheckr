@@ -1,11 +1,12 @@
-Package: relationchecker
+Package: relationcheckr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Simple checks on relation data tables
 Version: 0.1.0
 Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Mark Webster <markwebster204@yahoo.co.uk>
+Description: A package for simple consistency checks on relational data,
+    including checking for missing entries in non-nullable columns and
+    errors in foreign keys.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
